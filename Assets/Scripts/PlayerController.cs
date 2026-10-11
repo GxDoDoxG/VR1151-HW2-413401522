@@ -1,4 +1,5 @@
 using System.Collections;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -21,14 +22,18 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Sprite attack_sprite;
 
     [SerializeField] GameObject hitBox;
+    // [SerializeField] private InputActionReference dropActionRef;
+    [SerializeField] private GameObject WinText;
 
 
+    float[] gravityScale = new float[] {1f, 4f}; // Array!!!
     float move_input;
     private float moveInput;
     float speed = 8f;
     float jumpPower = 10f;
     bool isJumping = false;
     bool shouldJump = false;
+    bool dropFaster = false;
     PlayerState currentState = PlayerState.Idle;
 
     private void Awake()
@@ -39,6 +44,8 @@ public class PlayerController : MonoBehaviour
         currentState = PlayerState.Idle;
     }
 
+
+    // This part hasn't been implemented yet, but it will be used for the attack animation and hitbox activation.
     IEnumerator AttackRoutinue()
     {
         currentState = PlayerState.Attacking;
@@ -69,6 +76,13 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public void OnDrop(InputValue value)
+    {
+        dropFaster = value.isPressed;
+    }
+
+    // This Part unfinished yet, but it will be used for the attack animation and hitbox activation.
+    /*
     public void OnAttack(InputValue value)
     {
         if (value.isPressed && currentState != PlayerState.Attacking)
@@ -76,7 +90,7 @@ public class PlayerController : MonoBehaviour
             StartCoroutine(AttackRoutinue());
         }
     }
-
+    */
     #endregion
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -89,18 +103,36 @@ public class PlayerController : MonoBehaviour
 
         if (collision.gameObject.CompareTag("Outside"))
         {
-            transform.position = new Vector3(-7.36000013f, -2.73000002f, 0);
+            transform.position = new Vector2(-7.36000013f, -2.73000002f);
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.CompareTag("Coin"))
+        {
+            collision.gameObject.SetActive(false);
+            WinText.SetActive(true);
         }
     }
 
     private void FixedUpdate()
     {
-        transform.Translate(Vector2.right * move_input * speed * Time.deltaTime);
+        transform.Translate(Vector2.right * move_input * speed * Time.deltaTime); // Vector2!!! But not new Vector2(1, 0);
 
         if (shouldJump)
         {
             shouldJump = false;
             rb.AddForce(Vector2.up * jumpPower, ForceMode2D.Impulse);
+        }
+
+        if(dropFaster)
+        {
+            rb.gravityScale = gravityScale[1];
+        }
+        else
+        {
+            rb.gravityScale = gravityScale[0];
         }
     }
 
@@ -108,8 +140,15 @@ public class PlayerController : MonoBehaviour
     {
         if (move_input != 0)
         {
-            float targetScaleX = move_input > 0 ? 1f : -1f;
-            transform.localScale = new Vector3(targetScaleX, transform.localScale.y, transform.localScale.z);
+            float faceSide = move_input > 0 ? 1f : 0;
+            if(faceSide == 1f)
+            {
+                sr.flipX = false;
+            }
+            else
+            {
+                sr.flipX = true;
+            }
         }
 
 

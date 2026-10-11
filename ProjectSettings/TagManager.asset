@@ -5,6 +5,9 @@ TagManager:
   serializedVersion: 3
   tags:
   - Ground
+  - Platform
+  - Outside
+  - Coin
   layers:
   - Default
   - TransparentFX
